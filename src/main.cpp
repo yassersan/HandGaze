@@ -1,5 +1,5 @@
-#include <opencv2/core.hpp>
 #include <opencv2/core/types.hpp>
+#include <opencv2/dnn/dnn.hpp>
 #include <opencv2/highgui.hpp>
 #include <opencv2/imgproc.hpp>
 #include <opencv2/opencv.hpp>
@@ -7,6 +7,19 @@
 #include <iostream>
 #include <filesystem>
 #include <chrono>
+#include <opencv2/dnn.hpp>
+#include <fstream>
+
+static std::vector<std::string> loadLabels(const std::string& path){
+    std::vector<std::string> L;
+    std::ifstream f(path);
+    for(std::string line; std::getline(f, line);) if(!line.empty()){
+        L.push_back(line);
+    }
+    return L;
+
+}
+    
 
 void saveSample(const cv::Mat& roi, const std::string& dir){
     if(roi.empty()){
@@ -54,6 +67,10 @@ int main() {
     cv::Scalar low(0, 30, 60);
     cv::Scalar high(25, 200, 255);
 
+    cv::dnn::Net net = cv::dnn::readNetFromONNX("gestures.onnx");
+    auto labels = loadLabels("labels.txt");
+    int NUM_CLASSES = labels.size();
+
     while (true) {
         capture.read(frame);
         if (frame.empty()) break;
@@ -85,8 +102,22 @@ int main() {
         // Draw bounding box and extract ROI
         if (bestArea > 5000) {
             cv::rectangle(frame, bestBox, cv::Scalar(0, 255, 0), 2);
-            roi = frame(bestBox).clone();
+
+
+            int pad = 10;
+            cv::Rect padded(
+                std::max(bestBox.x - pad, 0),
+                std::max(bestBox.y - pad, 0),
+                std::min(bestBox.width + 2 * pad, frame.cols - bestBox.x + pad),
+                std::min(bestBox.height + 2 * pad, frame.rows - bestBox.y + pad)
+            );
+
+
+            roi = frame(padded).clone();
             cv::Mat pre = preprocessROI(roi);
+
+            
+
 
             pre.convertTo(roiPreview, CV_8U, 255.0);
             cv::imshow("ROI", roiPreview);
@@ -101,7 +132,6 @@ int main() {
 
         cv::imshow("Webcam", frame);
         cv::imshow("Mask", cleaned);
-
         int k = cv::waitKey(1) & 0xFF;
         if (k == 'q') break;
         if (k == '0' | k == '1' | k == '2'){
