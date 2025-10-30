@@ -1,3 +1,0 @@
-/Users/sanobar/ml-gestures-cpp/build/CMakeFiles/ml_gestures.dir
-/Users/sanobar/ml-gestures-cpp/build/CMakeFiles/edit_cache.dir
-/Users/sanobar/ml-gestures-cpp/build/CMakeFiles/rebuild_cache.dir
