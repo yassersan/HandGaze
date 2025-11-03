@@ -1,4 +1,4 @@
-🖐️ # HandGaze
+🖐️ #HandGaze
 Real-Time Hand Gesture Recognition using C++ · OpenCV · TensorFlow · ONNX
 
 🚀 Overview
